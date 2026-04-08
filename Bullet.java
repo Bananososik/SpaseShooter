@@ -1,28 +1,50 @@
-import greenfoot.*;
+    import greenfoot.*;
 
-/**
- * Shared bullet for players and enemies.
- */
 public class Bullet extends Actor
 {
+    private static final int BULLET_SIZE = 16;
+
+    private final int speedX;
     private final int speedY;
     private final int damage;
     private final boolean fromPlayer;
 
     public Bullet(int speedY, int damage, boolean fromPlayer)
     {
+        this(0, speedY, damage, fromPlayer, fromPlayer ? "Attack/Bullet_1.png" : "Attack/Bullet_3.png");
+    }
+
+    public Bullet(int speedX, int speedY, int damage, boolean fromPlayer, String spritePath)
+    {
+        this.speedX = speedX;
         this.speedY = speedY;
         this.damage = damage;
         this.fromPlayer = fromPlayer;
-        setImage(fromPlayer ? "SpaceShooterAssets/SpaceSBullet_1.png" : "UI/Enemy_attack.png");
+
+        GreenfootImage bullet = new GreenfootImage(spritePath);
+        bullet.scale(BULLET_SIZE, BULLET_SIZE);
+        setImage(bullet);
     }
 
     @Override
     public void act()
     {
-        setLocation(getX(), getY() + speedY);
+        if (getWorld() == null)
+        {
+            return;
+        }
 
-        if (getY() < -20 || getY() > getWorld().getHeight() + 20)
+        setLocation(getX() + speedX, getY() + speedY);
+
+        int maxX = getWorld().getWidth() - 1;
+        int maxY = getWorld().getHeight() - 1;
+        boolean leftScreen =
+            (speedY < 0 && getY() <= 0) ||
+            (speedY > 0 && getY() >= maxY) ||
+            (speedX < 0 && getX() <= 0) ||
+            (speedX > 0 && getX() >= maxX);
+
+        if (leftScreen)
         {
             getWorld().removeObject(this);
             return;
@@ -34,6 +56,14 @@ public class Bullet extends Actor
             if (target != null)
             {
                 target.takeDamage(damage);
+                getWorld().removeObject(this);
+                return;
+            }
+
+            BossShip bossTarget = (BossShip) getOneIntersectingObject(BossShip.class);
+            if (bossTarget != null)
+            {
+                bossTarget.takeDamage(damage);
                 getWorld().removeObject(this);
             }
         }
