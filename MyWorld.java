@@ -7,6 +7,7 @@ public class MyWorld extends World
 {
     private static final int BACKGROUND_SPEED = 2;
     private static final int BOSS_SCORE_STEP = 300;
+    private static final int BOSS_INTRO_TICKS = 120;
     private static int recordScore;
 
     private int spawnTimer;
@@ -17,12 +18,15 @@ public class MyWorld extends World
     private int enemiesDestroyed;
     private int roundTicks;
     private int difficultyTier;
+    private int battleLockTicks;
     private boolean guaranteedLevelUpDropped;
     private final String[] enemySprites;
+    private final String[] dialogueBossSprites;
 
     private final GreenfootImage[] backgrounds;
     private PlayerShip player;
     private BossShip boss;
+    private BossDialogue bossDialogue;
     private int nextBossScore;
 
     /**
@@ -74,7 +78,18 @@ public class MyWorld extends World
             "Enemies/Enemy_35.png",
             "Enemies/Enemy_36.png"
         };
-
+        dialogueBossSprites = new String[] {
+            "NPCs/NPC.png",
+            "NPCs/NPC_1.png",
+            "NPCs/NPC_2.png",
+            "NPCs/NPC_3.png",
+            "NPCs/NPC_4.png",
+            "NPCs/NPC_6.png",
+            "NPCs/NPC_7.png",
+            "NPCs/NPC_8.png",
+            "NPCs/NPC_9.png",
+            "NPCs/NPC_10.png"
+        };
         drawBackground();
 
         preparePlayers();
@@ -119,25 +134,36 @@ public class MyWorld extends World
 
         roundTicks++;
 
-        spawnTimer++;
-        if (boss == null && spawnTimer >= 60)
+        if (battleLockTicks > 0)
         {
-            spawnEnemy();
-            spawnTimer = 0;
+            battleLockTicks--;
+            if (battleLockTicks == 0 && bossDialogue != null)
+            {
+                removeObject(bossDialogue);
+                bossDialogue = null;
+            }
         }
 
-        if (boss == null && score >= nextBossScore)
+        if (!isBattlePaused())
         {
-            spawnBoss();
-            nextBossScore += BOSS_SCORE_STEP;
+            spawnTimer++;
+            if (boss == null && spawnTimer >= 60)
+            {
+                spawnEnemy();
+                spawnTimer = 0;
+            }
+
+            if (boss == null && score >= nextBossScore)
+            {
+                spawnBoss();
+                nextBossScore += BOSS_SCORE_STEP;
+            }
         }
 
         showText("Score: " + score, 62, 16);
         showText(getPlayerHpPercent() + "%", 26, 40);
         showText(getPlayerShieldPercent() + "%", 26, 92);
         showText("Lvl " + getPlayerWeaponLevel(), 24, 120);
-        showText("", 266, 16);
-
         drawRightHudText("Record: " + recordScore, 16);
         drawRightHudText(getBossStatusText(), 40);
         drawRightHudText("Round: " + getRoundTimeText(), 64);
@@ -266,10 +292,14 @@ public class MyWorld extends World
     {
         int bossIndex = ((nextBossScore / BOSS_SCORE_STEP) - 1) % 6 + 1;
         String bossPath = "Bosses/Boss_" + bossIndex + ".png";
+        String bossDialoguePortrait = dialogueBossSprites[Greenfoot.getRandomNumber(dialogueBossSprites.length)];
         int hp = 40 + (nextBossScore / BOSS_SCORE_STEP) * 10;
 
         boss = new BossShip(bossPath, hp);
         addObject(boss, getWidth() / 2, -40);
+        battleLockTicks = BOSS_INTRO_TICKS;
+        bossDialogue = new BossDialogue(bossDialoguePortrait, BOSS_INTRO_TICKS);
+        addObject(bossDialogue, getWidth() / 2, getHeight() - 40);
     }
 
     public void addScore(int delta)
@@ -330,6 +360,16 @@ public class MyWorld extends World
         }
         difficultyTier++;
         addScore(100);
+    }
+
+    public boolean isBattlePaused()
+    {
+        return battleLockTicks > 0 || gameFinished;
+    }
+
+    public int getBattleLockTicksRemaining()
+    {
+        return battleLockTicks;
     }
 
     public void onPlayerDestroyed()

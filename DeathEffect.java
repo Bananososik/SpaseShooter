@@ -1,10 +1,10 @@
 import greenfoot.*;
 
-/**
- * Short enemy death animation.
- */
 public class DeathEffect extends Actor
 {
+    private static final int FRAME_SIZE = 8;
+    private static final int FRAME_COUNT = 4;
+    private static final int DISPLAY_SIZE = 28;
     private static final int FRAME_TICKS = 5;
 
     private final GreenfootImage[] frames;
@@ -13,19 +13,25 @@ public class DeathEffect extends Actor
 
     public DeathEffect()
     {
-        frames = new GreenfootImage[] {
-            loadFrame("animated/Death_1.png"),
-            loadFrame("animated/Death_2.png"),
-            loadFrame("animated/Death_3.png")
-        };
+        int variant = Greenfoot.getRandomNumber(3) + 1;
+        frames = loadAnimationVariant("animated/Death_" + variant + ".png");
         setImage(frames[0]);
     }
 
-    private GreenfootImage loadFrame(String path)
+    private GreenfootImage[] loadAnimationVariant(String path)
     {
-        GreenfootImage img = new GreenfootImage(path);
-        img.scale(28, 28);
-        return img;
+        GreenfootImage strip = new GreenfootImage(path);
+        GreenfootImage[] loaded = new GreenfootImage[FRAME_COUNT];
+
+        for (int i = 0; i < FRAME_COUNT; i++)
+        {
+            GreenfootImage frameImage = new GreenfootImage(FRAME_SIZE, FRAME_SIZE);
+            frameImage.drawImage(strip, -i * FRAME_SIZE, 0);
+            frameImage.scale(DISPLAY_SIZE, DISPLAY_SIZE);
+            loaded[i] = frameImage;
+        }
+
+        return loaded;
     }
 
     @Override

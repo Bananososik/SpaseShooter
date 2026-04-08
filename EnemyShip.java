@@ -73,6 +73,12 @@ public class EnemyShip extends Ship
     @Override
     public void act()
     {
+        MyWorld world = (MyWorld) getWorld();
+        if (world != null && world.isBattlePaused())
+        {
+            return;
+        }
+
         movePattern();
         fireTimer++;
 

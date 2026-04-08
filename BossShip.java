@@ -24,6 +24,12 @@ public class BossShip extends Ship
             return;
         }
 
+        MyWorld world = (MyWorld) getWorld();
+        if (world != null && world.isBattlePaused())
+        {
+            return;
+        }
+
         movePattern();
 
         attackTimer++;

@@ -61,6 +61,12 @@ public class PlayerShip extends Ship
     @Override
     public void act()
     {
+        MyWorld world = (MyWorld) getWorld();
+        if (world != null && world.isBattlePaused())
+        {
+            return;
+        }
+
         collectPickups();
 
         if (cooldown > 0)

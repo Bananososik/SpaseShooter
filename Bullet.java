@@ -34,6 +34,12 @@ public class Bullet extends Actor
             return;
         }
 
+        MyWorld world = (MyWorld) getWorld();
+        if (world != null && world.isBattlePaused())
+        {
+            return;
+        }
+
         setLocation(getX() + speedX, getY() + speedY);
 
         int maxX = getWorld().getWidth() - 1;
